@@ -685,7 +685,7 @@ async def indexdb(client, message):
         return
 
 @Client.on_message(filters.private & filters.command("view_db"))
-async def indexdb(client, message):
+async def viewdb(client, message):
     user_id = message.from_user.id
     lazyid = message.from_user.id
 
