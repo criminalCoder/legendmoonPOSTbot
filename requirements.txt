@@ -1,0 +1,11 @@
+aiofiles
+Pillow
+humanize
+hachoir
+motor
+pyrofork==2.3.45
+TgCrypto
+dnspython
+aiohttp 
+pyromod==1.5
+telethon
