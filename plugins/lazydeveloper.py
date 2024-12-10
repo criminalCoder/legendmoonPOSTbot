@@ -679,6 +679,7 @@ async def indexdb(client, message):
     try:
         target_chat_id = int(chat_id_msg.text)
         await db.set_lazy_target_chat_id(user_id, target_chat_id)
+        await chat_id_msg.reply(f"✅ Channel ID {target_chat_id} has been added successfully.")
     except ValueError as e:
         await chat_id_msg.reply("Please send valid channel id")
         print(e)
