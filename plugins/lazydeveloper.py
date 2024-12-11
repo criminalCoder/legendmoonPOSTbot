@@ -449,6 +449,17 @@ async def autoposter(client, message):
             while any(channel_queues.values()):  # Continue until all queues are empty
                 
                 for channel_id in CHANNELS:
+                    if not await continue_posting(user_id):
+                            return await client.send_message(user_id, f"Stop sending message triggered, Happy posting 🤞")
+
+                    # if not await should_send_message():
+                    #     await queue_msg.edit("The time is 2'am, Its time to sleep...\n\n🔐 ...Session is locked... 🧧")
+                    #     sleep_duration = (datetime.now().replace(hour=END_TIME, minute=0, second=0, microsecond=0) - datetime.now()).seconds
+                    #     await asyncio.sleep(sleep_duration) #sleep bot for 2-to-6 am
+                    #     print(f"Its 2 o Clock - Time to sleep... : {sleep_duration}")
+                    #     continue
+                    # print(f"Its 6 o Clock - Time to wakeUp... : {sleep_duration}")
+                    # check to stop forwarding messages :
                     
                     if not channel_queues[channel_id]:
                         continue  # Skip if the queue for this channel is empty
@@ -458,16 +469,6 @@ async def autoposter(client, message):
                     try:
 
                         in_queue -= 1
-                        if not await should_send_message():
-                            await queue_msg.edit("The time is 2'am, Its time to sleep...\n\n🔐 ...Session is locked... 🧧")
-                            sleep_duration = (datetime.now().replace(hour=END_TIME, minute=0, second=0, microsecond=0) - datetime.now()).seconds
-                            await asyncio.sleep(sleep_duration) #sleep bot for 2-to-6 am
-                            print(f"Its 2 o Clock - Time to sleep... : {sleep_duration}")
-                            continue
-                        print(f"Its 6 o Clock - Time to wakeUp... : {sleep_duration}")
-                        # check to stop forwarding messages :
-                        if not await continue_posting(user_id):
-                            return await client.send_message(user_id, f"Stop sending message triggered, Happy posting 🤞")
 
                         # Validate message existence
                         mxxm = await lazy_userbot.get_messages(MAIN_POST_CHANNEL, ids=msg.id)
@@ -846,7 +847,7 @@ async def forward_status(client, message):
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 @Client.on_message(filters.private & filters.command("set_delay_time"))
-async def getdelaybetweenposts(client, message):
+async def setdelaybetweenposts(client, message):
     # setting up target chat id to take post from - BASE-CHANNEL
     user_id = message.from_user.id
     
