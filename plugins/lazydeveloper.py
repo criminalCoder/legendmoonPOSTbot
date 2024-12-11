@@ -848,7 +848,7 @@ async def remove_admin(client, message: Message):
 
         # Check if the channel ID is already in the user's list
     adminlists = await db.get_admin_ids()
-    if admin_id in adminlists:
+    if admin_id not in adminlists:
         return await message.reply(f"🧩 Admin ID {admin_id} not found in database 👎.\n\n❌ Please send another valid ID to remove.")
 
     # Remove the channel ID from the user's list using the existing database method
