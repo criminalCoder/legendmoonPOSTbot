@@ -434,16 +434,16 @@ async def autoposter(client, message):
     async with lock:
         try:
             while any(channel_queues.values()):  # Continue until all queues are empty
-                in_queue -= 1
+                
                 for channel_id in CHANNELS:
                     
                     if not channel_queues[channel_id]:
                         continue  # Skip if the queue for this channel is empty
 
                     msg = channel_queues[channel_id].pop(0)  # Get the next message for this channel
-                    print(msg)
+                    # print(msg)
                     try:
-
+                        in_queue -= 1
                         # Validate message existence
                         mxxm = await lazy_userbot.get_messages(MAIN_POST_CHANNEL, ids=msg.id)
                         if not mxxm:
@@ -458,6 +458,7 @@ async def autoposter(client, message):
                         # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
 
                         #method 2
+                        
                         if msg.media:
                             fd = await lazy_userbot.send_message(channel_id, msg.text or "", file=msg.media, parse_mode="markdown")
                         else:
