@@ -452,7 +452,7 @@ async def autoposter(client, message):
 
                         reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         # Forward the message to the current channel
-                        main_post_link = f"https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}"
+                        main_post_link = f"<ahttps://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}>🔏 ʟɪɴᴋ 🔐</a>"
 
                         # method 1
                         # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
@@ -466,7 +466,7 @@ async def autoposter(client, message):
 
                         print(f"✅ Forwarded message ID {msg.id} to channel {channel_id}")
                         fd_final_chat = str(channel_id)[4:]
-                        forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{fd.id}'>ʟɪɴᴋ</a>"
+                        forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{fd.id}'>🔁 ʟɪɴᴋ 🔁</a>"
                         await channel_progress.edit_text(
                             lazydeveloper.CHANNEL_PROGRESS.format(channel_id, msg.id, forward_post_link, main_post_link),
                             parse_mode=enums.ParseMode.HTML
