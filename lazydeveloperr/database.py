@@ -9,6 +9,7 @@ class Database:
         self.col = self.db.user
         self.settings_col = self.db.settings  # New collection for settings like skip_msg_id
         self.forwarded_col = self.db.forwarded_messages  # New collection for forwarded IDs
+        self.admins = self.db.admins  # New collection for forwarded IDs
 
     def new_user(self, id):
         return dict(
@@ -174,7 +175,37 @@ class Database:
                 {'$unset': {'forwarded_ids': ""}}
             )
 
+# ====================================================================
+#                   Admin ID Management
+# ====================================================================
+    async def get_admin_ids(self):
+        """
+        Fetch the list of all admin IDs stored in the database.
+        Returns an empty list if no admin IDs exist.
+        """
+        record = await self.admins.find_one({"type": "admin_list"})
+        return record.get("admin_ids", []) if record else []
 
+    async def add_admin_id(self, admin_id):
+        """
+        Add an admin ID to the list. Avoids duplicates using $addToSet.
+        """
+        await self.admins.update_one(
+            {"type": "admin_list"},
+            {"$addToSet": {"admin_ids": admin_id}},  # Avoid duplicates
+            upsert=True  # Create the document if it doesn't exist
+        )
+
+    async def remove_admin_id(self, admin_id):
+        """
+        Remove an admin ID from the list.
+        """
+        await self.admins.update_one(
+            {"type": "admin_list"},
+            {"$pull": {"admin_ids": admin_id}}  # Remove the admin ID
+        )   
+# ====================================================================
+# ====================================================================
     async def get_channel_ids(self, user_id):
         user = await self.col.find_one({"_id": user_id})
         return user.get("channel_ids", []) if user else []
@@ -191,5 +222,7 @@ class Database:
             {"$addToSet": {"channel_ids": channel_id}},
             upsert=True
         )
+# ====================================================================
+# ====================================================================
 
 db = Database(DB_URL, DB_NAME)

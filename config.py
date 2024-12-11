@@ -18,9 +18,11 @@ FLOOD = int(os.environ.get("FLOOD", "10"))
 
 START_PIC = os.environ.get("START_PIC", "https://i.ibb.co/rv8Lds3/ALL-RENAMER-LOGO-YASH-GOYAL.jpg")
 
-ADMIN = [int(admin) if id_pattern.search(admin) else admin for admin in os.environ.get('ADMIN', '5965340120 6126812037 6864533113').split()]
+ADMIN = [int(admin) if id_pattern.search(admin) else admin for admin in os.environ.get('ADMIN', '5965340120 6126812037 6864533113 1501097183').split()]
 
-CHANNELS = [int(ch) if id_pattern.search(ch) else ch for ch in os.environ.get('CHANNELS', '-1002449706784 -1002442299587 -1002288308631 -1002490685829 -1002243470797 -1002260629607').split()]
+OWNERS = [int(owner) if id_pattern.search(owner) else owner for owner in os.environ.get('OWNERS', '5965340120 6126812037 6864533113 1501097183').split()]
+
+# CHANNELS = [int(ch) if id_pattern.search(ch) else ch for ch in os.environ.get('CHANNELS', '-1002449706784 -1002442299587 -1002288308631 -1002490685829 -1002243470797 -1002260629607').split()]
 
 CHANNEL_LINK1 = os.environ.get("CHANNEL_LINK1", "https://t.me/LazyDeveloper")
 

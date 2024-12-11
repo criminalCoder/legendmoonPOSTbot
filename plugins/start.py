@@ -1,5 +1,5 @@
 from asyncio import sleep
-from pyrogram import Client, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, CallbackQuery
 from lazydeveloperr.txt import lazydeveloper
 from lazydeveloperr.database import db
@@ -11,7 +11,7 @@ async def start(client, message):
     user = message.from_user
     if not await db.is_user_exist(user.id):
         await db.add_user(user.id)             
-    txt=f"👋 Hey {message.from_user.mention}\nɪ'ᴍ ᴀɴ ᴀᴅᴠᴀɴᴄᴇ ᴀᴜᴛᴏ ᴘᴏsᴛ ғᴏʀᴡᴀʀᴅᴇʀ ʙᴏᴛ. ɪ ᴄᴀɴ ғᴏʀᴡᴀʀᴅ ᴘᴏsᴛ ᴛᴏ ᴜɴʟɪᴍɪᴛᴇᴅ ᴄʜᴀɴɴᴇʟs ɪɴ sᴘᴇᴄɪғɪᴇᴅ ᴛɪᴍᴇ ɪɴᴛᴇʀᴠᴀʟ.\n\n<blockquote>♥ ʙᴇʟᴏᴠᴇᴅ ᴏᴡɴᴇʀ <a href='https://telegram.me/Legend_Moon'>💴Legend💰💳</a> 🍟</blockquote>",
+    txt=f"👋 Hey {message.from_user.mention}\nɪ'ᴍ ᴀɴ ᴀᴅᴠᴀɴᴄᴇ ᴀᴜᴛᴏ ᴘᴏsᴛ ғᴏʀᴡᴀʀᴅᴇʀ ʙᴏᴛ. ɪ ᴄᴀɴ ғᴏʀᴡᴀʀᴅ ᴘᴏsᴛ ᴛᴏ ᴜɴʟɪᴍɪᴛᴇᴅ ᴄʜᴀɴɴᴇʟs ɪɴ sᴘᴇᴄɪғɪᴇᴅ ᴛɪᴍᴇ ɪɴᴛᴇʀᴠᴀʟ.\n\n<blockquote>♥ ʙᴇʟᴏᴠᴇᴅ ᴏᴡɴᴇʀ <a href='https://telegram.me/Legend_Moon'>💴Legend 🍟</a></blockquote>",
     button=InlineKeyboardMarkup([[
         InlineKeyboardButton("✿.｡:☆ ᴏᴡɴᴇʀ ⚔ ᴅᴇᴠs ☆:｡.✿", callback_data='dev')
         ],[
@@ -22,9 +22,9 @@ async def start(client, message):
         InlineKeyboardButton('ℹ ʜᴇʟᴘ ', callback_data='help')
         ]])
     if START_PIC:
-        await message.reply_photo(START_PIC, caption=txt, reply_markup=button)       
+        await message.reply_photo(START_PIC, caption=txt, reply_markup=button, parse_mode=enums.ParseMode.HTML )       
     else:
-        await message.reply_text(text=txt, reply_markup=button, disable_web_page_preview=True)
+        await message.reply_text(text=txt, reply_markup=button, parse_mode=enums.ParseMode.HTML,  disable_web_page_preview=True)
 
 
 @Client.on_callback_query()
@@ -32,7 +32,7 @@ async def cb_handler(client, query: CallbackQuery):
     data = query.data 
     if data == "start":
         await query.message.edit_text(
-            text=f"👋 Hey {query.from_user.mention} \nɪ'ᴍ ᴀɴ ᴀᴅᴠᴀɴᴄᴇ ᴀᴜᴛᴏ ᴘᴏsᴛ ғᴏʀᴡᴀʀᴅᴇʀ ʙᴏᴛ. ɪ ᴄᴀɴ ғᴏʀᴡᴀʀᴅ ᴘᴏsᴛ ᴛᴏ ᴜɴʟɪᴍɪᴛᴇᴅ ᴄʜᴀɴɴᴇʟs ɪɴ sᴘᴇᴄɪғɪᴇᴅ ᴛɪᴍᴇ ɪɴᴛᴇʀᴠᴀʟ.\n\n<blockquote>♥ ʙᴇʟᴏᴠᴇᴅ ᴏᴡɴᴇʀ <a href='https://telegram.me/Legend_Moon'>💴Legend💰💳</a> 🍟</blockquote>",
+            text=f"👋 Hey {query.from_user.mention} \nɪ'ᴍ ᴀɴ ᴀᴅᴠᴀɴᴄᴇ ᴀᴜᴛᴏ ᴘᴏsᴛ ғᴏʀᴡᴀʀᴅᴇʀ ʙᴏᴛ. ɪ ᴄᴀɴ ғᴏʀᴡᴀʀᴅ ᴘᴏsᴛ ᴛᴏ ᴜɴʟɪᴍɪᴛᴇᴅ ᴄʜᴀɴɴᴇʟs ɪɴ sᴘᴇᴄɪғɪᴇᴅ ᴛɪᴍᴇ ɪɴᴛᴇʀᴠᴀʟ.\n\n<blockquote>♥ ʙᴇʟᴏᴠᴇᴅ ᴏᴡɴᴇʀ <a href='https://telegram.me/Legend_Moon'>💴Legend 🍟</a></blockquote>",
             reply_markup=InlineKeyboardMarkup( [[
                 InlineKeyboardButton("✿.｡:☆ ᴏᴡɴᴇʀ ⚔ ᴅᴇᴠs ☆:｡.✿", callback_data='dev')
                 ],[
