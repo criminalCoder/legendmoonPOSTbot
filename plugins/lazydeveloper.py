@@ -27,14 +27,12 @@ from telethon.errors import (
     PasswordHashInvalidError,
     MessageIdInvalidError
 )
-import datetime
+from datetime import datetime
+
 # user_forward_data = {}
 St_Session = {}
 handler = {}
 
-neha_delete_time = DELAY_BETWEEN_POSTS
-neha = neha_delete_time
-file_auto_delete = humanize.naturaldelta(neha)
 
 def manager(id, value):
     global handler
@@ -342,6 +340,9 @@ async def cancelled(msg):
 # **********************************************************
 lock = asyncio.Lock()
 
+START_TIME = 2
+END_TIME = 6
+
 @Client.on_message(filters.private & filters.command("post"))
 async def autoposter(client, message):
     user_id = message.from_user.id
@@ -440,6 +441,8 @@ async def autoposter(client, message):
                 user_id,
                 f"🔐 ...Session is locked... 🧧"
             )
+    secondz = await db.getdelaybetweenposts(user_id)
+    inminute = humanize.naturaldelta(secondz)
 
     async with lock:
         try:
@@ -459,8 +462,9 @@ async def autoposter(client, message):
                             await queue_msg.edit("The time is 2'am, Its time to sleep...\n\n🔐 ...Session is locked... 🧧")
                             sleep_duration = (datetime.now().replace(hour=END_TIME, minute=0, second=0, microsecond=0) - datetime.now()).seconds
                             await asyncio.sleep(sleep_duration) #sleep bot for 2-to-6 am
+                            print(f"Its 2 o Clock - Time to sleep... : {sleep_duration}")
                             continue
-                        
+                        print(f"Its 6 o Clock - Time to wakeUp... : {sleep_duration}")
                         # check to stop forwarding messages :
                         if not await continue_posting(user_id):
                             return await client.send_message(user_id, f"Stop sending message triggered, Happy posting 🤞")
@@ -556,8 +560,8 @@ async def autoposter(client, message):
                         await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
-                    await queue_msg.edit(f"⏳ Waiting for {file_auto_delete} seconds before processing the next batch.\n\n🔐 ...Session is locked... 🧧")
-                    await asyncio.sleep(DELAY_BETWEEN_POSTS)
+                    await queue_msg.edit(f"⏳ Waiting for {inminute} before processing the next batch.\n\n🔐 ...Session is locked... 🧧")
+                    await asyncio.sleep(secondz)
 
             await channel_progress.delete()
             await post_progress.delete()
@@ -574,6 +578,7 @@ async def autoposter(client, message):
         print("Session is still connected.")
 # ----------------------------------------------------------
 # ----------------------------------------------------------
+
 @Client.on_message(filters.private & filters.command("index_db"))
 async def indexdb(client, message):
     # setting up target chat id to take post from - BASE-CHANNEL
@@ -614,6 +619,7 @@ async def viewdb(client, message):
         print(lazyerror)
         await message.reply("Something went wrong, PLease try again later...")
         return
+
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 @Client.on_message(filters.private & filters.command("index_channel"))
@@ -837,6 +843,54 @@ async def forward_status(client, message):
         await message.reply("<b>⏳ sᴛᴀᴛᴜs => ɴᴏᴛ ꜰᴏᴜɴᴅ 💔</b>\nI've decided to post messages to your all sub-channels... 📜", parse_mode=enums.ParseMode.HTML)
     return
 
+# :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+@Client.on_message(filters.private & filters.command("set_delay_time"))
+async def getdelaybetweenposts(client, message):
+    # setting up target chat id to take post from - BASE-CHANNEL
+    user_id = message.from_user.id
+    
+    lazyid = message.from_user.id
+
+    if not await verify_user(lazyid):
+        return await message.reply("⛔ You are not authorized to use this bot.")
+    
+    time_sec = await client.ask(
+        text="⏲ Send the delay time interval in seconds.\n\nExample : send 600 for 10 min ✅",
+        chat_id=message.chat.id,
+        filters=filters.text
+    )
+
+    try:
+        timez = int(time_sec.text)
+        await db.set_lazy_target_chat_id(user_id, timez)
+        await time_sec.reply(f"🎉Your current time delay between each batch is set to {timez} seconds")
+    except ValueError as e:
+        await time_sec.reply("❌ Please send valid numeric value in seconds...")
+        print(e)
+        return
+
+@Client.on_message(filters.private & filters.command("view_delay_time"))
+async def getdelaybetweenposts(client, message):
+    user_id = message.from_user.id
+    lazyid = message.from_user.id
+
+    if not await verify_user(lazyid):
+        return await message.reply("⛔ You are not authorized to use this bot.")
+    
+    try:
+        seconds = await db.getdelaybetweenposts(user_id)
+        inminute = humanize.naturaldelta(seconds)
+
+        await message.reply(f"Here is you current time interval between each batch\n\n├🕐 Seconds : {seconds} seconds\n├⏰ H/Minutes : {inminute}")
+    except Exception as lazyerror:
+        print(lazyerror)
+        await message.reply("Something went wrong, PLease try again later...")
+        return
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 async def continue_posting(user_id: int):
     status = await db.get_post_status(user_id)
     
@@ -847,8 +901,6 @@ async def continue_posting(user_id: int):
     else:
         return True
 
-START_TIME = 2
-END_TIME = 6
 async def should_send_message():
     """
     Check whether the current time is outside the restricted interval.

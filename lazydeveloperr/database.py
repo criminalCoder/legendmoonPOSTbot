@@ -100,6 +100,7 @@ class Database:
     async def set_lazy_target_chat_id(self, id, target_chat_id):
         z = await self.col.update_one({'_id': int(id)}, {'$set': {'lazy_target_chat_id': target_chat_id}})
         print(z)
+    
     # setting sikp messages for the bot
     async def set_skip_msg_id(self, message_id):
         """
@@ -230,6 +231,17 @@ class Database:
     async def get_post_status(self, id):
         user = await self.col.find_one({'_id': int(id)})
         return user.get('post_status', None)
+# ====================================================================
+# ====================================================================
+
+    async def getdelaybetweenposts(self, id):
+        user = await self.col.find_one({'_id': int(id)})
+        return user.get('delay_between_batch', None)
+    
+    async def setdelaybetweenposts(self, id, timez):
+        z = await self.col.update_one({'_id': int(id)}, {'$set': {'delay_between_batch': timez}})
+        print(z)
+    
 # ====================================================================
 # ====================================================================
 
