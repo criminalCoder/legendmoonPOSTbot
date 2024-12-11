@@ -516,6 +516,23 @@ async def autoposter(client, message):
                     except Exception as e:
                         print(f"❌ Failed to forward message ID {msg.id} to channel {channel_id}: {e}")
                         await asyncio.sleep(5)
+                        
+                        # Remove the message from all other channel queues
+                        for other_channel in CHANNELS:
+                            if other_channel != channel_id and msg in channel_queues[other_channel]:
+                                channel_queues[other_channel].remove(msg)
+                        forwarded_ids.add(msg.id)
+                        await db.add_forwarded_id(user_id, MAIN_POST_CHANNEL, msg.id)
+                        sent_count += 1
+
+                        progress_percentage = (sent_count / total_messages) * 100
+                        percent = f"{progress_percentage:.2f}"
+                        await post_progress.edit_text(
+                            lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, percent),
+                            parse_mode=enums.ParseMode.HTML
+                        )
+
+                        await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
                     print(f"⏳ Waiting {DELAY_BETWEEN_POSTS} seconds before processing the next batch.")
