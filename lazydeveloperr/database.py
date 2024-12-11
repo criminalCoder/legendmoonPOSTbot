@@ -224,5 +224,13 @@ class Database:
         )
 # ====================================================================
 # ====================================================================
+    async def set_post_status(self, id, status):
+        z = await self.col.update_one({'_id': int(id)}, {'$set': {'post_status': status}})
+
+    async def get_post_status(self, id):
+        user = await self.col.find_one({'_id': int(id)})
+        return user.get('post_status', None)
+# ====================================================================
+# ====================================================================
 
 db = Database(DB_URL, DB_NAME)

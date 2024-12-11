@@ -1,4 +1,4 @@
-import asyncio
+import asyncio, humanize
 from pyrogram import filters, Client, enums
 from config import *
 from lazydeveloperr.database import db 
@@ -27,9 +27,14 @@ from telethon.errors import (
     PasswordHashInvalidError,
     MessageIdInvalidError
 )
+import datetime
 # user_forward_data = {}
 St_Session = {}
 handler = {}
+
+neha_delete_time = DELAY_BETWEEN_POSTS
+neha = neha_delete_time
+file_auto_delete = humanize.naturaldelta(neha)
 
 def manager(id, value):
     global handler
@@ -395,7 +400,7 @@ async def autoposter(client, message):
 
     # Iterating through messages
     MAIN_POST_CHANNEL = target_chat_id  # Replace with your MAIN_POST_CHANNEL ID
-    DELAY_BETWEEN_POSTS = 60  # 15 minutes in seconds
+    # DELAY_BETWEEN_POSTS = 60  # 15 minutes in seconds
 
     # Fetch all messages from the main channel
     # forwarded_ids = set(await db.get_forwarded_ids(user_id))  # IDs already forwarded
@@ -430,6 +435,11 @@ async def autoposter(client, message):
                 user_id,
                 lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, 0)
             )
+    
+    queue_msg = await client.send_message(
+                user_id,
+                f"🔐 ...Session is locked... 🧧"
+            )
 
     async with lock:
         try:
@@ -443,14 +453,25 @@ async def autoposter(client, message):
                     msg = channel_queues[channel_id].pop(0)  # Get the next message for this channel
                     # print(msg)
                     try:
+
                         in_queue -= 1
+                        if not await should_send_message():
+                            await queue_msg.edit("The time is 2'am, Its time to sleep...\n\n🔐 ...Session is locked... 🧧")
+                            sleep_duration = (datetime.now().replace(hour=END_TIME, minute=0, second=0, microsecond=0) - datetime.now()).seconds
+                            await asyncio.sleep(sleep_duration) #sleep bot for 2-to-6 am
+                            continue
+                        
+                        # check to stop forwarding messages :
+                        if not await continue_posting(user_id):
+                            return await client.send_message(user_id, f"Stop sending message triggered, Happy posting 🤞")
+
                         # Validate message existence
                         mxxm = await lazy_userbot.get_messages(MAIN_POST_CHANNEL, ids=msg.id)
                         if not mxxm:
                             print(f"❌ Message ID {msg.id} does not exist in channel {MAIN_POST_CHANNEL}")
                             continue
 
-                        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
+                        # reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         # Forward the message to the current channel
                         main_post_link = f"<ahttps://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}>🔏 ʟɪɴᴋ 🔐</a>"
 
@@ -535,57 +556,13 @@ async def autoposter(client, message):
                         await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
-                    print(f"⏳ Waiting {DELAY_BETWEEN_POSTS} seconds before processing the next batch.")
+                    await queue_msg.edit(f"⏳ Waiting for {file_auto_delete} seconds before processing the next batch.\n\n🔐 ...Session is locked... 🧧")
                     await asyncio.sleep(DELAY_BETWEEN_POSTS)
 
             await channel_progress.delete()
             await post_progress.delete()
+            await queue_msg.delete()
             await client.send_message(chat_id=message.from_user.id,  text=f"✅ Unique messages from the main channel have been forwarded to all subchannels.")
-
-
-        # try:
-        #     for msg in messages:
-                
-        #         try:
-        #             in_queue -= 1
-        #             # Forward message to all subchannels
-        #             for channel_id in CHANNELS:
-        #                 try:
-        #                     # Custom caption with main channel link
-        #                     main_post_link = f"https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}"
-        #                     # custom_caption = f"\n\n⚡Join: {CHANNEL_LINK1}\n⚡Join: {CHANNEL_LINK2}\n🔗 [Source Post]({main_post_link})"
-                            
-        #                     fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
-
-        #                     print(f"✅ Forwarded message ID {msg.id} to channel {channel_id}")
-        #                     fd_final_chat = str(channel_id)[4:]
-        #                     forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{fd.id}'>ʟɪɴᴋ</a>"
-        #                     await channel_progress.edit_text(lazydeveloper.CHANNEL_PROGRESS.format(channel_id, msg.id, forward_post_link, main_post_link), parse_mode=enums.ParseMode.HTML)
-        #                     await asyncio.sleep(1)  # Short delay between subchannels
-        #                 except FloodWait as e:
-        #                     print(f"⏳ FloodWait: Sleeping for {e.x} seconds.")
-        #                     await asyncio.sleep(e.x)
-        #                 except Exception as e:
-        #                     print(f"❌ Failed to forward message ID {msg.id} to channel {channel_id}: {e}")
-
-        #             # Mark message as forwarded
-        #             forwarded_ids.add(msg.id)
-        #             await db.add_forwarded_id(user_id, msg.id)
-        #             sent_count += 1
-        #             progress_percentage = (sent_count/total_messages) * 100
-        #             percent = f"{progress_percentage:.2f}"
-        #             await post_progress.edit_text(lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, percent), parse_mode=enums.ParseMode.HTML)
-
-        #             if in_queue > 0:
-        #                 print(f"⏳ Waiting {DELAY_BETWEEN_POSTS} seconds before processing the next post.")
-        #                 await asyncio.sleep(DELAY_BETWEEN_POSTS)
-
-        #         except Exception as e:
-        #             print(f"❌ Error forwarding message ID {msg.id}: {e}")
-
-        #     await channel_progress.delete()
-        #     await post_progress.delete()
-        #     await message.reply("✅ Random messages from the main channel have been forwarded to all subchannels.")
         except Exception as e:
             print(e)
 
@@ -595,99 +572,6 @@ async def autoposter(client, message):
         print("Session is disconnected successfully!")
     else:
         print("Session is still connected.")
-
-    # try:
-    #     # messages = []
-    #     last_message_id = await db.get_skip_msg_id()  # Start fetching from the most recent message
-    #     print(f"The last message id got => {last_message_id}")
-    #     async with lock:
-    #         # running first loop to show realtime update
-    #         async for _ in lazy_userbot.iter_messages(MAIN_POST_CHANNEL, offset_id=last_message_id, reverse=True):
-    #             total_messages += 1
-
-    #         print(f"Total messages to forward: {total_messages}")
-            
-    #         if total_messages == 0:
-    #             # If no messages to process, inform the user immediately
-    #             await message.reply("✅ No new messages to forward.")
-    #             return
-
-    #         print(f"Total messages to forward: {total_messages}")
-    #         sent_count = 0
-    #         in_queue = total_messages
-
-    #         channel_progress = await client.send_message(
-    #             user_id,
-    #             lazydeveloper.CHANNEL_PROGRESS.format("⏳", "⏳", "⏳", "⏳")
-    #         )
-
-    #         post_progress = await client.send_message(
-    #             user_id,
-    #             lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, 0)
-    #         )
-
-    #         # Fetch messages in reverse order
-    #         async for msg in lazy_userbot.iter_messages(MAIN_POST_CHANNEL, offset_id=last_message_id, reverse=True):
-    #             in_queue -= 1
-    #             final_chat = str(MAIN_POST_CHANNEL)[4:]
-    #             main_post_link = f"<a href='https://telegram.me/c/{final_chat}/{msg.id}'>ʟɪɴᴋ</a>"
-    #             print(f"Current Queue => {in_queue}")
-    #             channel_caption = f"\n\n⚡Join: {CHANNEL_LINK1}\n⚡Join: {CHANNEL_LINK2}"
-    #             for channel_id in CHANNELS:
-    #                 try:
-    #                     fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
-    #                     # print('sethod 1 done')
-    #                     # try:
-    #                     #     if msg.text and not msg.media:
-    #                     #         # Send text-only messages
-    #                     #         await lazy_userbot.send_message(entity=channel_id, message=msg.text, parse_mode='html')
-    #                     #         print('method 2 done')
-                                
-    #                     #     elif msg.media: 
-    #                     #         # Send media with or without captions
-    #                     #         await lazy_userbot.send_file(entity=channel_id, file=msg.media, caption=msg.text or "",  parse_mode='html')
-    #                     #         print('method 3 done')
-    #                     # except Exception as e:
-    #                     #     print(f"error =>>>>>>>>> {e}")
-    #                     #     pass
-
-    #                     # await client.copy_message(chat_id=channel_id, from_chat_id=MAIN_POST_CHANNEL, message_id=msg.id, parse_mode=enums.ParseMode.HTML)
-    #                     fd_final_chat = str(channel_id)[4:]
-    #                     forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{fd.id}'>ʟɪɴᴋ</a>"
-    #                     print(f"✅ Forwarded message ID {msg.id} to channel {channel_id} |=> chatid =>{fd_final_chat} |=> fd link {forward_post_link}")
-
-    #                     await channel_progress.edit_text(lazydeveloper.CHANNEL_PROGRESS.format(channel_id, msg.id, forward_post_link, main_post_link), parse_mode=enums.ParseMode.HTML)
-    #                     await asyncio.sleep(1)  # Short delay between channels
-    #                 except Exception as e:
-    #                     print(f"❌ Failed to forward message ID {msg.id} to channel {channel_id}: {e}")
-
-    #             # work after sending message :
-    #             await db.set_skip_msg_id(msg.id)
-    #             sent_count += 1
-    #             progress_percentage = (sent_count/total_messages) * 100
-    #             percent = f"{progress_percentage:.2f}"
-    #             await post_progress.edit_text(lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, percent), parse_mode=enums.ParseMode.HTML)
-
-    #             # Delay before processing the next message
-    #             if in_queue > 0:
-    #                 print(f"⏳ Waiting {DELAY_BETWEEN_POSTS} seconds before processing the next post.")
-    #                 await asyncio.sleep(DELAY_BETWEEN_POSTS)
-
-    #     await channel_progress.delete()
-    #     await post_progress.delete()
-    #     await message.reply(f"✅ ᴀʟʟ ᴍᴇssᴀɢᴇs ғʀᴏᴍ ᴍᴀɪɴ ᴄʜᴀɴɴᴇʟ ʜᴀᴠᴇ ʙᴇᴇɴ ғᴏʀᴡᴀʀᴅᴇᴅ ᴛᴏ ᴀʟʟ sᴜʙ-ᴄʜᴀɴɴᴇʟs.")
-
-    # except Exception as e:
-    #     print(f"❌ Error occurred: {e}")
-    #     await message.reply("❌ Failed to process messages.")
-    #     #finally disconnect the session to avoid broken pipe error 
-    
-    # await lazy_userbot.disconnect()
-
-    # if not lazy_userbot.is_connected():
-    #     print("Session is disconnected successfully!")
-    # else:
-    #     print("Session is still connected.")
 # ----------------------------------------------------------
 # ----------------------------------------------------------
 @Client.on_message(filters.private & filters.command("index_db"))
@@ -923,7 +807,59 @@ async def clean_forward_ids(client, message):
     except Exception as e:
         print(f"❌ Error cleaning forwarded IDs: {e}")
         return await message.reply(f"❌ Failed to clean forwarded IDs: {e}")
+# ///////////////////////////////////////////////////////////////
+# ///////////////////////////////////////////////////////////////
+@Client.on_message(filters.private & filters.command("enable_posting"))
+async def enable_forward(client, message):
+    user_id = message.from_user.id
+    status = f"enable"
+    lms = await message.reply("Enabling sending post...") 
+    await db.set_post_status(user_id, status)
+    await lms.edit(f"✅⏩ Enabled sending post...")
 
+@Client.on_message(filters.private & filters.command("disable_posting"))
+async def disable_forward(client, message):
+    user_id = message.from_user.id
+    status = f"disable"
+    lms = await message.reply("Disabling sending post...") 
+    await db.set_post_status(user_id, status)
+    await lms.edit(f"🚫⏩ Disabled sending post... ")
+
+@Client.on_message(filters.private & filters.command("posting_status"))
+async def forward_status(client, message):
+    user_id = message.from_user.id
+    status = await db.get_post_status(user_id)
+    if status == "enable":
+        await message.reply("<b>⏳ sᴛᴀᴛᴜs => ᴇɴᴀʙʟᴇᴅ ✅⏩</b>\nSending post is enabled , i can send post to all sub-channels 🤞", parse_mode=enums.ParseMode.HTML)
+    elif status == "disable":
+        await message.reply("<b>⏳ sᴛᴀᴛᴜs => ᴅɪsᴀʙʟᴇᴅ 🚫⏩</b>\nSending post is disabled , i can't send post to any sub-channels 😔", parse_mode=enums.ParseMode.HTML)
+    else:
+        await message.reply("<b>⏳ sᴛᴀᴛᴜs => ɴᴏᴛ ꜰᴏᴜɴᴅ 💔</b>\nI've decided to post messages to your all sub-channels... 📜", parse_mode=enums.ParseMode.HTML)
+    return
+
+async def continue_posting(user_id: int):
+    status = await db.get_post_status(user_id)
+    
+    if status == "enable":
+        return True
+    elif status == "disable":
+        return False
+    else:
+        return True
+
+START_TIME = 2
+END_TIME = 6
+async def should_send_message():
+    """
+    Check whether the current time is outside the restricted interval.
+    """
+    now = datetime.now()
+    current_hour = now.hour
+    # Return True if the current time is outside the restricted interval
+    return not (START_TIME <= current_hour < END_TIME)
+
+# ///////////////////////////////////////////////////////////////
+# ///////////////////////////////////////////////////////////////
 async def verify_user(user_id: int):
     LAZYLISTS = await db.get_admin_ids()
     return user_id in ADMIN or user_id in LAZYLISTS
