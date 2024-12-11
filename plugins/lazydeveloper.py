@@ -120,7 +120,7 @@ async def connect_session(bot, msg):
             await db.set_hash(user_id, api_hash)
             await bot.send_message(
                 chat_id=msg.chat.id,
-                text="Session started successfully! ✅ Use /rename to proceed and enjoy renaming journey 👍."
+                text="Session started successfully! ✅ \n\nNow simply index your database channel and add all sub-channels 🍿"
             )
             print(f"Session started successfully for user {user_id} ✅")
         else:
@@ -135,7 +135,7 @@ async def connect_session(bot, msg):
             print("Session is disconnected successfully!")
         else:
             print("Session is still connected.")
-        await init.edit_text("with ❤ @---", parse_mode=enums.ParseMode.HTML)
+        await init.edit_text("with ❤ @Legend_moon", parse_mode=enums.ParseMode.HTML)
         return
 
 @Client.on_message(filters.private & filters.command("get_session"))
@@ -143,7 +143,7 @@ async def getsession(client , message):
     user_id = message.from_user.id
     session = await db.get_session(user_id)
     if not session:
-        await client.send_message(chat_id=user_id, text=f"😕NO session found !\n\nHere are some tools that you can use...\n\n|=> /generate - to gen session\n|=> /connect - to connect session\n|=> /rename - to start process", parse_mode=enums.ParseMode.HTML)
+        await client.send_message(chat_id=user_id, text=f"😕NO session found !\n\nHere are some tools that you can use...\n\n|=> /login - to gen session\n|=> /connect - to connect session\n|=> /post - to start process", parse_mode=enums.ParseMode.HTML)
         return
     await client.send_message(chat_id=user_id, text=f"Here is your session string...\n\n<spoiler><code>{session}</code></spoiler>\n\n⚠ Please dont share this string to anyone, You may loOSE your account.", parse_mode=enums.ParseMode.HTML)
 
@@ -294,7 +294,7 @@ async def generate_session(bot, msg):
         if lazydeveloperrsession.is_connected():
             await bot.send_message(
                 chat_id=msg.chat.id,
-                text="Session started successfully! ✅ Use /rename to proceed and enjoy renaming journey 👍."
+                text="Session started successfully! ✅ \nNow simply index your database channel and add all sub-channels 🍿."
             )
             print(f"Session started successfully for user {user_id} ✅")
         else:
@@ -345,7 +345,6 @@ async def autoposter(client, message):
     if not await verify_user(user_id):
         return await message.reply("⛔ You are not authorized to use this bot.")
     
-
     # check running task
     if lock.locked():
         print('Wait until previous process complete.')
@@ -359,7 +358,7 @@ async def autoposter(client, message):
 
     target_chat_id = await db.get_lazy_target_chat_id(user_id)
     # print(f'✅Set target chat => {target_chat_id}' )
-    
+
     # try:
     #     chat_info = await client.get_chat(target_chat_id)
     # except Exception as e:
@@ -382,7 +381,7 @@ async def autoposter(client, message):
             missing_values.append("API ID")
         if not apihash:
             missing_values.append("API hash")
-        
+
         missing_fields = ", ".join(missing_values)
         await client.send_message(
             chat_id=msg.chat.id,
@@ -390,7 +389,7 @@ async def autoposter(client, message):
             parse_mode=enums.ParseMode.HTML
         )
         return  # Exit the function if values are missing
-    
+
     lazy_userbot = TelegramClient(StringSession(sessionstring), apiid, apihash)
     await lazy_userbot.start()
 
@@ -415,7 +414,7 @@ async def autoposter(client, message):
 
     if not messages:
         return await message.reply("✅ All messages from the main channel have already been forwarded.")
-    
+
     # Initialize per-channel message queues
     channel_queues = {channel_id: messages.copy() for channel_id in CHANNELS}
 
@@ -447,14 +446,22 @@ async def autoposter(client, message):
                         if not message:
                             print(f"❌ Message ID {msg.id} does not exist in channel {MAIN_POST_CHANNEL}")
                             continue
-
+                        
                         # Forward the message to the current channel
                         main_post_link = f"https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}"
-                        fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
-
+                        # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
+                        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
+                        try:
+                            post_message = await message.copy(chat_id = channel_id, disable_notification=True)
+                        except FloodWait as e:
+                            await asyncio.sleep(e.x)
+                            post_message = await message.copy(chat_id = channel_id, disable_notification=True)
+                        except Exception as e:
+                            print(e)
+                            return
                         print(f"✅ Forwarded message ID {msg.id} to channel {channel_id}")
                         fd_final_chat = str(channel_id)[4:]
-                        forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{fd.id}'>ʟɪɴᴋ</a>"
+                        forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{post_message.id}'>ʟɪɴᴋ</a>"
                         await channel_progress.edit_text(
                             lazydeveloper.CHANNEL_PROGRESS.format(channel_id, msg.id, forward_post_link, main_post_link),
                             parse_mode=enums.ParseMode.HTML
