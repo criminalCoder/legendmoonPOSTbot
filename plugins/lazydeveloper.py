@@ -402,6 +402,9 @@ async def autoposter(client, message):
     forwarded_ids = set(await db.get_forwarded_ids(user_id, MAIN_POST_CHANNEL))  # Fetch forwarded IDs for the main post channel
     messages = []
 
+    CHANNELS = await db.get_channel_ids(user_id)
+    # CHANNELS = [int(ch) if id_pattern.search(ch) else ch for ch in chnl]
+
     async for msg in lazy_userbot.iter_messages(MAIN_POST_CHANNEL, reverse=True):
         if msg.id not in forwarded_ids:
             messages.append(msg)
@@ -447,24 +450,40 @@ async def autoposter(client, message):
                             print(f"❌ Message ID {msg.id} does not exist in channel {MAIN_POST_CHANNEL}")
                             continue
                         
+                        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         # Forward the message to the current channel
                         main_post_link = f"https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}"
-                        # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
+                        print("Hit Forward msg")
+                        fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
+                        print("Done Forward msg")
+                        print("------------------")
                         bot_username = f"@{client.username}"
+                        print("hit send message")
                         suc = await lazy_userbot.send_message(channel_id, msg.text or "", file=msg.media)
+                        print("done send message")
+                        print("------------------")
 
-                        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         try:
+                            print("hit copy 1")
+                            await lazy_userbot.copy_message(
+                                            chat_id=channel_id,
+                                            from_chat_id=MAIN_POST_CHANNEL,
+                                            message_id=msg.id
+                                        )
+                            print("done copy 1")
+                            print("----------------")
+                            print("hit copy 2")
                             post_message = await msg.copy(chat_id = channel_id, disable_notification=True)
+                            print("done copy 1")
                         except FloodWait as e:
                             await asyncio.sleep(e.x)
-                            post_message = await msg.copy(chat_id = channel_id, disable_notification=True)
+                            # post_message = await msg.copy(chat_id = channel_id, disable_notification=True)
                         except Exception as e:
                             print(e)
                             pass
                         print(f"✅ Forwarded message ID {msg.id} to channel {channel_id}")
                         fd_final_chat = str(channel_id)[4:]
-                        forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{post_message.id}'>ʟɪɴᴋ</a>"
+                        forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{fd.id}'>ʟɪɴᴋ</a>"
                         await channel_progress.edit_text(
                             lazydeveloper.CHANNEL_PROGRESS.format(channel_id, msg.id, forward_post_link, main_post_link),
                             parse_mode=enums.ParseMode.HTML
