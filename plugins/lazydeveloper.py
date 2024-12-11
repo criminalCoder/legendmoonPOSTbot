@@ -143,7 +143,7 @@ async def getsession(client , message):
     user_id = message.from_user.id
     session = await db.get_session(user_id)
     if not session:
-        await client.send_message(chat_id=user_id, text=f"😕NO session found !\n\nHere are some tools that you can use...\n\n|=> /login - to gen session\n|=> /connect - to connect session\n|=> /post - to start process", parse_mode=enums.ParseMode.HTML)
+        await client.send_message(chat_id=user_id, text=f"😕NO session found !\n\n🧧 Please Login first with /login cmd...", parse_mode=enums.ParseMode.HTML)
         return
     await client.send_message(chat_id=user_id, text=f"Here is your session string...\n\n<spoiler><code>{session}</code></spoiler>\n\n⚠ Please dont share this string to anyone, You may loOSE your account.", parse_mode=enums.ParseMode.HTML)
 
