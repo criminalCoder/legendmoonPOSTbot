@@ -847,7 +847,7 @@ async def forward_status(client, message):
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 @Client.on_message(filters.private & filters.command("set_delay_time"))
-async def setdelaybetweenposts(client, message):
+async def setzdelaybetweenposts(client, message):
     # setting up target chat id to take post from - BASE-CHANNEL
     user_id = message.from_user.id
     
@@ -864,7 +864,7 @@ async def setdelaybetweenposts(client, message):
 
     try:
         timez = int(time_sec.text)
-        await db.set_lazy_target_chat_id(user_id, timez)
+        await db.setdelaybetweenposts(user_id, timez)
         await time_sec.reply(f"🎉Your current time delay between each batch is set to {timez} seconds")
     except ValueError as e:
         await time_sec.reply("❌ Please send valid numeric value in seconds...")
