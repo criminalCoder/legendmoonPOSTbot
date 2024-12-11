@@ -450,12 +450,15 @@ async def autoposter(client, message):
                         # Forward the message to the current channel
                         main_post_link = f"https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}"
                         # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
+                        bot_username = f"@{client.username}"
+                        suc = await lazy_userbot.send_message(bot_username, msg.text or "", file=msg.media)
+
                         reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         try:
-                            post_message = await message.copy(chat_id = channel_id, disable_notification=True)
+                            post_message = await suc.copy(chat_id = channel_id, disable_notification=True)
                         except FloodWait as e:
                             await asyncio.sleep(e.x)
-                            post_message = await message.copy(chat_id = channel_id, disable_notification=True)
+                            post_message = await suc.copy(chat_id = channel_id, disable_notification=True)
                         except Exception as e:
                             print(e)
                             return
