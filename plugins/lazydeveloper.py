@@ -438,7 +438,7 @@ async def autoposter(client, message):
                         continue  # Skip if the queue for this channel is empty
 
                     msg = channel_queues[channel_id].pop(0)  # Get the next message for this channel
-
+                    print(msg)
                     try:
                         
                         # Validate message existence
@@ -451,17 +451,17 @@ async def autoposter(client, message):
                         main_post_link = f"https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}"
                         # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
                         bot_username = f"@{client.username}"
-                        suc = await lazy_userbot.send_message(bot_username, msg.text or "", file=msg.media)
+                        suc = await lazy_userbot.send_message(channel_id, msg.text or "", file=msg.media)
 
                         reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         try:
-                            post_message = await suc.copy(chat_id = channel_id, disable_notification=True)
+                            post_message = await msg.copy(chat_id = channel_id, disable_notification=True)
                         except FloodWait as e:
                             await asyncio.sleep(e.x)
-                            post_message = await suc.copy(chat_id = channel_id, disable_notification=True)
+                            post_message = await msg.copy(chat_id = channel_id, disable_notification=True)
                         except Exception as e:
                             print(e)
-                            return
+                            pass
                         print(f"✅ Forwarded message ID {msg.id} to channel {channel_id}")
                         fd_final_chat = str(channel_id)[4:]
                         forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{post_message.id}'>ʟɪɴᴋ</a>"
@@ -689,7 +689,7 @@ async def indexdb(client, message):
     try:
         target_chat_id = int(chat_id_msg.text)
         await db.set_lazy_target_chat_id(user_id, target_chat_id)
-        await chat_id_msg.reply(f"✅ Channel ID {target_chat_id} has been added successfully.")
+        await chat_id_msg.reply(f"📂 Index Channel ID {target_chat_id} has been updated successfully.")
     except ValueError as e:
         await chat_id_msg.reply("Please send valid channel id")
         print(e)
@@ -766,6 +766,64 @@ async def remove_channel(client, message: Message):
     await db.remove_channel_id(user_id, channel_id)
     
     await message.reply(f"✅ Channel ID {channel_id} has been removed successfully.")
+
+@Client.on_message(filters.private & filters.command("add_admin"))
+async def set_channel(client, message: Message):
+    user_id = message.from_user.id
+    
+    lazyid = message.from_user.id
+
+    if not await verify_user(lazyid):
+        return await message.reply("⛔ You are not authorized to use this bot.")
+    
+    # Ask the user for the channel ID
+    channel_msg = await client.ask(
+        user_id, 
+        "📱 Please send the `admin_id` you want to add to list:", 
+        filters=filters.text
+    )
+
+    # Validate the channel ID
+    try:
+        channel_id = int(channel_msg.text)
+    except ValueError:
+        return await channel_msg.reply("❌ Invalid channel ID. Please send a valid Channel ID.")
+    
+    # Check if the channel ID is already in the user's list
+    existing_channel_ids = await db.get_channel_ids(user_id)
+    if channel_id in existing_channel_ids:
+        return await channel_msg.reply(f"⚠️ Channel ID {channel_id} is already in your list. Please send another ID.")
+
+    # Add the channel ID to the user's list using the existing database method
+
+    await db.add_channel_id(user_id, channel_id)
+    
+    await channel_msg.reply(f"✅ Channel ID {channel_id} has been added successfully.")
+
+@Client.on_message(filters.private & filters.command("remove_admin"))
+async def remove_channel(client, message: Message):
+    user_id = message.from_user.id
+    lazyid = message.from_user.id
+
+    if not await verify_user(lazyid):
+        return await message.reply("⛔ You are not authorized to use this bot.")
+    
+    # Extract the channel_id from the message text
+    parts = message.text.split()
+    if len(parts) < 2:
+        return await message.reply("⚠️ Usage: `/remove_channel <channel_id>` to remove specific channel from list...\n\n❌ Please provide a `channel_id` to remove.")
+
+    try:
+        channel_id = int(parts[1])
+    except ValueError:
+        return await message.reply("❌ Invalid channel ID. Please provide a valid numeric ID.")
+
+    # Remove the channel ID from the user's list using the existing database method
+    await db.remove_channel_id(user_id, channel_id)
+    
+    await message.reply(f"✅ Channel ID {channel_id} has been removed successfully.")
+
+
 
 @Client.on_message(filters.private & filters.command("view_channel_list"))
 async def list_channels(client, message: Message):
