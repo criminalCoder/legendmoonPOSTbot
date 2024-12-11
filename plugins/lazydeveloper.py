@@ -445,35 +445,24 @@ async def autoposter(client, message):
                     try:
                         
                         # Validate message existence
-                        message = await lazy_userbot.get_messages(MAIN_POST_CHANNEL, ids=msg.id)
-                        if not message:
+                        mxxm = await lazy_userbot.get_messages(MAIN_POST_CHANNEL, ids=msg.id)
+                        if not mxxm:
                             print(f"❌ Message ID {msg.id} does not exist in channel {MAIN_POST_CHANNEL}")
                             continue
                         
                         reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         # Forward the message to the current channel
                         main_post_link = f"https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}"
-                        # print("Hit Forward msg")
+                       
+                        # method 1
                         # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
-                        # print("Done Forward msg")
-                        # print("------------------")
-                        # bot_username = f"@{client.username}"
-                        # print("------------------")
-                        suc = await lazy_userbot.send_message(channel_id, msg.text or "", file=msg.media, parse_mode="html")
-                        # print("done send message")
-                        # print("------------------")
-
-                        try:
-                            print("hit copy 2")
-                            post_message = await msg.copy(chat_id = channel_id, disable_notification=True)
-                            print("done copy 2")
-                        except FloodWait as e:
-                            await asyncio.sleep(e.x)
-                            # post_message = await msg.copy(chat_id = channel_id, disable_notification=True)
-                        except Exception as e:
-                            print(e)
-                            pass
                         
+                        #method 2
+                        if msg.media:
+                            fd = await lazy_userbot.send_message(channel_id, msg.text or "", file=msg.media, parse_mode="markdown")
+                        else:
+                            fd = await lazy_userbot.send_message(channel_id, msg.text or "",  parse_mode="markdown")
+
                         print(f"✅ Forwarded message ID {msg.id} to channel {channel_id}")
                         fd_final_chat = str(channel_id)[4:]
                         forward_post_link = f"<a href='https://telegram.me/c/{fd_final_chat}/{fd.id}'>ʟɪɴᴋ</a>"
@@ -533,7 +522,7 @@ async def autoposter(client, message):
 
             await channel_progress.delete()
             await post_progress.delete()
-            await message.reply("✅ Unique messages from the main channel have been forwarded to all subchannels.")
+            await client.send_message(chat_id=message.from_user.id,  text=f"✅ Unique messages from the main channel have been forwarded to all subchannels.")
 
 
         # try:
