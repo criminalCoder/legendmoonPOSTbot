@@ -67,7 +67,9 @@ def set_api_hash_in_config(id, lazy_api_hash):
 @Client.on_message(filters.private & filters.command("connect"))
 async def connect_session(bot, msg):
     user_id = msg.from_user.id
-    
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
+
     if not await verify_user(user_id):
         return await msg.reply("⛔ You are not authorized to use this bot.")
     
@@ -144,7 +146,11 @@ async def connect_session(bot, msg):
 @Client.on_message(filters.private & filters.command("get_session"))
 async def getsession(client , message):
     user_id = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
+
     session = await db.get_session(user_id)
+    
     if not session:
         await client.send_message(chat_id=user_id, text=f"😕NO session found !\n\n🧧 Please Login first with /login cmd...", parse_mode=enums.ParseMode.HTML)
         return
@@ -153,6 +159,8 @@ async def getsession(client , message):
 @Client.on_message(filters.private & filters.command("login"))
 async def generate_session(bot, msg):
     lazyid = msg.from_user.id
+    if not await db.is_user_exist(lazyid):
+        await db.add_user(lazyid)
 
     if not await verify_user(lazyid):
         return await msg.reply("⛔ You are not authorized to use this bot.")
@@ -343,10 +351,14 @@ lock = asyncio.Lock()
 START_TIME = 2
 END_TIME = 6
 
+# ----------------------------------------------------------
+# #########################< P O S T - M E T H O D >#################################
+# ----------------------------------------------------------
 @Client.on_message(filters.private & filters.command("post"))
 async def autoposter(client, message):
     user_id = message.from_user.id
-
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
     # Check if the user is allowed to use the bot
     if not await verify_user(user_id):
         return await message.reply("⛔ You are not authorized to use this bot.")
@@ -460,7 +472,7 @@ async def autoposter(client, message):
                     #     continue
                     # print(f"Its 6 o Clock - Time to wakeUp... : {sleep_duration}")
                     # check to stop forwarding messages :
-                    
+
                     if not channel_queues[channel_id]:
                         continue  # Skip if the queue for this channel is empty
 
@@ -478,7 +490,7 @@ async def autoposter(client, message):
 
                         # reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         # Forward the message to the current channel
-                        main_post_link = f"<ahttps://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}>🔏 ʟɪɴᴋ 🔐</a>"
+                        main_post_link = f"<a https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}>🔏 ʟɪɴᴋ 🔐</a>"
 
                         # method 1
                         # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
@@ -527,18 +539,19 @@ async def autoposter(client, message):
                         await db.add_forwarded_id(user_id, MAIN_POST_CHANNEL, msg.id)
                         sent_count += 1
 
-                        progress_percentage = (sent_count / total_messages) * 100
-                        percent = f"{progress_percentage:.2f}"
-                        await post_progress.edit_text(
-                            lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, percent),
-                            parse_mode=enums.ParseMode.HTML
-                        )
+                        # progress_percentage = (sent_count / total_messages) * 100
+                        # percent = f"{progress_percentage:.2f}"
+                        # await post_progress.edit_text(
+                        #     lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, percent),
+                        #     parse_mode=enums.ParseMode.HTML
+                        # )
 
-                        await asyncio.sleep(1)
+                        # await asyncio.sleep(1)
                         continue 
                     except FloodWait as e:
                         print(f"⏳ FloodWait: Sleeping for {e.x} seconds.")
                         await asyncio.sleep(e.x)
+                        continue
                     except Exception as e:
                         print(f"❌ Failed to forward message ID {msg.id} to channel {channel_id}: {e}")
                         await asyncio.sleep(5)
@@ -551,18 +564,19 @@ async def autoposter(client, message):
                         await db.add_forwarded_id(user_id, MAIN_POST_CHANNEL, msg.id)
                         sent_count += 1
 
-                        progress_percentage = (sent_count / total_messages) * 100
-                        percent = f"{progress_percentage:.2f}"
-                        await post_progress.edit_text(
-                            lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, percent),
-                            parse_mode=enums.ParseMode.HTML
-                        )
+                        # progress_percentage = (sent_count / total_messages) * 100
+                        # percent = f"{progress_percentage:.2f}"
+                        # await post_progress.edit_text(
+                        #     lazydeveloper.POST_PROGRESS.format(sent_count, total_messages, in_queue, percent),
+                        #     parse_mode=enums.ParseMode.HTML
+                        # )
 
-                        await asyncio.sleep(1)
+                        # await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
-                    await queue_msg.edit(f"⏳ Waiting for {inminute} before processing the next batch.\n\n🔐 ...Session is locked... 🧧")
+                    await queue_msg.edit_text(f"⏳ Waiting for {inminute} before processing the next batch.\n\n🔐 ...Session is locked... 🧧")
                     await asyncio.sleep(secondz)
+                    continue
 
             await channel_progress.delete()
             await post_progress.delete()
@@ -578,13 +592,15 @@ async def autoposter(client, message):
     else:
         print("Session is still connected.")
 # ----------------------------------------------------------
+# #########################< P O S T - M E T H O D >#################################
 # ----------------------------------------------------------
 
 @Client.on_message(filters.private & filters.command("index_db"))
 async def indexdb(client, message):
     # setting up target chat id to take post from - BASE-CHANNEL
     user_id = message.from_user.id
-    
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
     lazyid = message.from_user.id
 
     if not await verify_user(lazyid):
@@ -609,6 +625,8 @@ async def indexdb(client, message):
 async def viewdb(client, message):
     user_id = message.from_user.id
     lazyid = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
 
     if not await verify_user(lazyid):
         return await message.reply("⛔ You are not authorized to use this bot.")
@@ -626,7 +644,9 @@ async def viewdb(client, message):
 @Client.on_message(filters.private & filters.command("index_channel"))
 async def set_channel(client, message: Message):
     user_id = message.from_user.id
-    
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
+
     lazyid = message.from_user.id
 
     if not await verify_user(lazyid):
@@ -660,6 +680,8 @@ async def set_channel(client, message: Message):
 async def remove_channel(client, message: Message):
     user_id = message.from_user.id
     lazyid = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
 
     if not await verify_user(lazyid):
         return await message.reply("⛔ You are not authorized to use this bot.")
@@ -683,6 +705,8 @@ async def remove_channel(client, message: Message):
 async def list_channels(client, message: Message):
     user_id = message.from_user.id
     lazyid = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
 
     if not await verify_user(lazyid):
         return await message.reply("⛔ You are not authorized to use this bot.")
@@ -703,6 +727,8 @@ async def set_admin(client, message: Message):
     user_id = message.from_user.id
 
     lazyid = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
 
     if user_id not in OWNERS:
         return await message.reply("🤚Hello bro, This command is only for owners.")
@@ -738,7 +764,9 @@ async def set_admin(client, message: Message):
 async def remove_admin(client, message: Message):
     user_id = message.from_user.id
     lazyid = message.from_user.id
-    
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
+
     if user_id not in OWNERS:
         return await message.reply("🤚Hello bro, This command is only for owners.")
 
@@ -770,6 +798,9 @@ async def list_admins(client, message: Message):
     user_id = message.from_user.id
     lazyid = message.from_user.id
     
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
+
     if user_id not in OWNERS:
         return await message.reply("🤚Hello bro, This command is only for owners.")
 
@@ -791,6 +822,8 @@ async def list_admins(client, message: Message):
 async def clean_forward_ids(client, message):
     user_id = message.from_user.id
     # Verify user authorization
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
     if not await verify_user(user_id):
         return await message.reply("⛔ You are not authorized to use this bot.")
 
@@ -819,6 +852,8 @@ async def clean_forward_ids(client, message):
 @Client.on_message(filters.private & filters.command("enable_posting"))
 async def enable_forward(client, message):
     user_id = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
     status = f"enable"
     lms = await message.reply("Enabling sending post...") 
     await db.set_post_status(user_id, status)
@@ -827,6 +862,8 @@ async def enable_forward(client, message):
 @Client.on_message(filters.private & filters.command("disable_posting"))
 async def disable_forward(client, message):
     user_id = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
     status = f"disable"
     lms = await message.reply("Disabling sending post...") 
     await db.set_post_status(user_id, status)
@@ -835,6 +872,8 @@ async def disable_forward(client, message):
 @Client.on_message(filters.private & filters.command("posting_status"))
 async def forward_status(client, message):
     user_id = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
     status = await db.get_post_status(user_id)
     if status == "enable":
         await message.reply("<b>⏳ sᴛᴀᴛᴜs => ᴇɴᴀʙʟᴇᴅ ✅⏩</b>\nSending post is enabled , i can send post to all sub-channels 🤞", parse_mode=enums.ParseMode.HTML)
@@ -850,7 +889,8 @@ async def forward_status(client, message):
 async def setzdelaybetweenposts(client, message):
     # setting up target chat id to take post from - BASE-CHANNEL
     user_id = message.from_user.id
-    
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
     lazyid = message.from_user.id
 
     if not await verify_user(lazyid):
@@ -875,6 +915,8 @@ async def setzdelaybetweenposts(client, message):
 async def getdelaybetweenposts(client, message):
     user_id = message.from_user.id
     lazyid = message.from_user.id
+    if not await db.is_user_exist(user_id):
+        await db.add_user(user_id)
 
     if not await verify_user(lazyid):
         return await message.reply("⛔ You are not authorized to use this bot.")
@@ -906,6 +948,7 @@ async def should_send_message():
     """
     Check whether the current time is outside the restricted interval.
     """
+
     now = datetime.now()
     current_hour = now.hour
     # Return True if the current time is outside the restricted interval

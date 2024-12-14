@@ -244,5 +244,29 @@ class Database:
     
 # ====================================================================
 # ====================================================================
+    async def toggle_sleep_mode(self):
+        """
+        Toggle the sleep mode value between true and false in the settings collection.
+        """
+        result = await self.settings_col.find_one({"type": "sleep_mode"})
+        
+        if result:
+            # Toggle the value
+            new_value = not result.get("value", False)
+        else:
+            # Default to True if the entry doesn't exist
+            new_value = True
+        
+        # Update the document with the new value
+        await self.settings_col.update_one(
+            {"type": "sleep_mode"},
+            {"$set": {"value": new_value}},
+            upsert=True
+        )
+        
+        return new_value  # Return the new value after toggle
+
+# ====================================================================
+# ====================================================================
 
 db = Database(DB_URL, DB_NAME)
