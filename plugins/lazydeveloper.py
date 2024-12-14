@@ -460,8 +460,11 @@ async def autoposter(client, message):
     async with lock:
         try:
             while any(channel_queues.values()):  # Continue until all queues are empty
+                waiting_count += 1
+                await queue_msg.edit_text(f"🔥 Running Batch no => <b><u> {waiting_count} </u></b> 📌\n\n🔐 ...Session is locked... 🧧")
                 
                 for channel_id in CHANNELS:
+
                     if not await continue_posting(user_id):
                             return await client.send_message(user_id, f"Stop sending message triggered, Happy posting 🤞")
 
@@ -575,9 +578,8 @@ async def autoposter(client, message):
                         # await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
-                    waiting_count += 1
                     print(f"⏳  Waiting for {inminute} before processing the next batch. ==> {waiting_count+1}🔐 ...Session is locked... 🧧")
-                    await queue_msg.edit_text(f"🚀Finished batch => <b><u>{waiting_count}</u></b>\n\n⏳ Waiting for {inminute} before processing the batch no => <b><i><u> {waiting_count+1} </u></i><b>.\n\n🔐 ...Session is locked... 🧧")
+                    await queue_msg.edit_text(f"🚀 Finished batch no => <b><u> {waiting_count} </u></b>\n\n⏳ Waiting for {inminute} before processing the next batch no => <b><u> {waiting_count+1} </u><b>.\n\n🔐 ...Session is locked... 🧧")
                     await asyncio.sleep(secondz)
                     continue
 
