@@ -432,6 +432,7 @@ async def autoposter(client, message):
     print(total_messages)
     in_queue = total_messages
     sent_count = 0
+    waiting_count = 0
 
     if not messages:
         return await message.reply("✅ All messages from the main channel have already been forwarded.")
@@ -490,7 +491,7 @@ async def autoposter(client, message):
 
                         # reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("• with ❤ LazyDeveloper •", url=f'https://telegram.me/LazyDeveloper')]])
                         # Forward the message to the current channel
-                        main_post_link = f"<a https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}>🔏 ʟɪɴᴋ 🔐</a>"
+                        main_post_link = f"<a href='https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}'>🔏 ʟɪɴᴋ 🔐</a>"
 
                         # method 1
                         # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
@@ -574,7 +575,9 @@ async def autoposter(client, message):
                         # await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
-                    await queue_msg.edit_text(f"⏳ Waiting for {inminute} before processing the next batch.\n\n🔐 ...Session is locked... 🧧")
+                    waiting_count += 1
+                    print(f"⏳  Waiting for {inminute} before processing the next batch. ==> {waiting_count+1}🔐 ...Session is locked... 🧧")
+                    await queue_msg.edit_text(f"🚀Finished batch => <b><u>{waiting_count}</u></b>\n\n⏳ Waiting for {inminute} before processing the batch no => <b><i><u> {waiting_count+1} </u></i><b>.\n\n🔐 ...Session is locked... 🧧")
                     await asyncio.sleep(secondz)
                     continue
 
