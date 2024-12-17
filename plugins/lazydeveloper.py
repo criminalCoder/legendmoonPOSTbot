@@ -18,6 +18,7 @@ from pyrogram.errors import (
     SessionPasswordNeeded,
     PasswordHashInvalid,
 )
+import pytz
 from telethon.errors import (
     ApiIdInvalidError,
     PhoneNumberInvalidError,
@@ -593,7 +594,8 @@ async def autoposter(client, message):
                         # await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
-                    current_time = datetime.now().strftime("%I:%M %p")
+                    india_timezone = pytz.timezone("Asia/Kolkata")
+                    current_time = datetime.now(india_timezone).strftime("%I:%M %p")
                     print(f"⏳  Waiting for {inminute} before processing the next batch. ==> {waiting_count+1}🔐 ...Session is locked... 🧧")
                     await queue_msg.edit_text(f"🚀 Finished batch no => <b><u> {waiting_count} </u></b>\n\n<blockquote><b>AT ⏰ {current_time} </b></blockquote>\n\n⏳ Waiting for {inminute} before processing the next batch no => <b><u> {waiting_count+1} </u><b>.\n\n<blockquote>🔐 ...Session is locked... 🧧</blockquote>", parse_mode=enums.ParseMode.HTML)
                     await asyncio.sleep(secondz)
