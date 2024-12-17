@@ -9,3 +9,4 @@ dnspython
 aiohttp 
 pyromod==1.5
 telethon
+pytz
