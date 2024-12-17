@@ -359,7 +359,7 @@ global_lock = asyncio.Lock()
 
 @Client.on_message(filters.private & filters.command("post"))
 async def autopost(client, message):
-        # check running task
+    # check running task
     if global_lock.locked():
         print('Wait until previous process complete.')
         return await message.reply("⚠️ Another process is running. Please wait until previous process complete. ⏳")
@@ -593,8 +593,9 @@ async def autoposter(client, message):
                         # await asyncio.sleep(1)
                         continue
                 if in_queue > 0:
+                    current_time = datetime.now().strftime("%I:%M %p")
                     print(f"⏳  Waiting for {inminute} before processing the next batch. ==> {waiting_count+1}🔐 ...Session is locked... 🧧")
-                    await queue_msg.edit_text(f"🚀 Finished batch no => <b><u> {waiting_count} </u></b>\n\n⏳ Waiting for {inminute} before processing the next batch no => <b><u> {waiting_count+1} </u><b>.\n\n🔐 ...Session is locked... 🧧")
+                    await queue_msg.edit_text(f"🚀 Finished batch no => <b><u> {waiting_count} </u></b>\n\n<blockquote><b>AT ⏰ {current_time} </b></blockquote>\n\n⏳ Waiting for {inminute} before processing the next batch no => <b><u> {waiting_count+1} </u><b>.\n\n<blockquote>🔐 ...Session is locked... 🧧</blockquote>", parse_mode=enums.ParseMode.HTML)
                     await asyncio.sleep(secondz)
                     continue
 
