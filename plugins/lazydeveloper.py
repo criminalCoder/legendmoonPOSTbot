@@ -354,7 +354,22 @@ END_TIME = 6
 # ----------------------------------------------------------
 # #########################< P O S T - M E T H O D >#################################
 # ----------------------------------------------------------
+
+global_lock = asyncio.Lock()
+
 @Client.on_message(filters.private & filters.command("post"))
+async def autopost(client, message):
+        # check running task
+    if global_lock.locked():
+        print('Wait until previous process complete.')
+        return await message.reply("⚠️ Another process is running. Please wait until previous process complete. ⏳")
+    
+    async with global_lock:  # Prevent concurrent execution
+        try:
+            await autoposter(client, message)
+        except Exception as lazyerror:
+            print(lazyerror)
+
 async def autoposter(client, message):
     user_id = message.from_user.id
     if not await db.is_user_exist(user_id):
@@ -497,14 +512,14 @@ async def autoposter(client, message):
                         main_post_link = f"<a href='https://t.me/c/{str(MAIN_POST_CHANNEL)[4:]}/{msg.id}'>🔏 ʟɪɴᴋ 🔐</a>"
 
                         # method 1
-                        # fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
+                        fd = await lazy_userbot.forward_messages(channel_id, msg.id, MAIN_POST_CHANNEL)
 
                         #method 2
-                        
-                        if msg.media:
-                            fd = await lazy_userbot.send_message(channel_id, msg.text or "", file=msg.media, parse_mode="markdown")
-                        else:
-                            fd = await lazy_userbot.send_message(channel_id, msg.text or "",  parse_mode="markdown")
+
+                        # if msg.media:
+                        #     fd = await lazy_userbot.send_message(channel_id, msg.text or "", file=msg.media, parse_mode="markdown")
+                        # else:
+                        #     fd = await lazy_userbot.send_message(channel_id, msg.text or "",  parse_mode="markdown")
 
                         print(f"✅ Forwarded message ID {msg.id} to channel {channel_id}")
                         fd_final_chat = str(channel_id)[4:]
@@ -596,7 +611,8 @@ async def autoposter(client, message):
         print("Session is disconnected successfully!")
     else:
         print("Session is still connected.")
-# ----------------------------------------------------------
+#
+#  ----------------------------------------------------------
 # #########################< P O S T - M E T H O D >#################################
 # ----------------------------------------------------------
 
@@ -727,6 +743,7 @@ async def list_channels(client, message: Message):
     await message.reply(f"📜 Your saved channel IDs:\n├🆔 {channel_list}", parse_mode=enums.ParseMode.HTML)
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 @Client.on_message(filters.private & filters.command("add_admin"))
 async def set_admin(client, message: Message):
     user_id = message.from_user.id
@@ -821,6 +838,7 @@ async def list_admins(client, message: Message):
     # Format the list of channel IDs and send it to the user
     admin_list = "\n├🆔 ".join([str(admin_id) for admin_id in admin_ids])
     await message.reply(f"🧩 Your saved Admin IDs:\n├🆔 {admin_list}", parse_mode=enums.ParseMode.HTML)
+
 # ------------------------------------------------------------
 # ============================================================
 @Client.on_message(filters.private & filters.command("clean_forward_ids"))
